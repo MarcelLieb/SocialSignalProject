@@ -81,11 +81,8 @@ def main(
         num_epochs=10,
         patience=1,
 ):
-    gs_df = load_csv(os.path.join(DATA_DIR, 'gs.csv'))
-    
-    train_X, train_y, train_ids = load_unimodal_data(gs_df[gs_df.partition == 'train'], features,
-                                                              undersample_negative=undersample_negative)
-    dev_X, dev_y, dev_ids = load_unimodal_data(gs_df[gs_df.partition == 'devel'], features)
+    train_X, train_y, train_ids = load_dataset("train", features, undersample_negative=undersample_negative)
+    dev_X, dev_y, dev_ids = load_dataset("devel", features)
 
     train_ds = CustomDS(train_X, train_y, train_ids, device=DEVICE)
     dev_ds = CustomDS(dev_X, dev_y, dev_ids, device=DEVICE)

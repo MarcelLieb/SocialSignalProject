@@ -11,6 +11,8 @@ from dataset import load_unimodal_data, CustomDS, DATA_DIR
 from model import GRUClassifier
 from dataset import load_csv
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 def get_predictions(model, data_loader):
     predictions = []
@@ -39,6 +41,8 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         for batch in tqdm(train_loader):
             optimizer.zero_grad()
             X, y, _ = batch
+            X = X.to(DEVICE)
+            y = y.to(DEVICE)
             logits = model(X)
             loss = loss_fn(logits, y)
             loss.backward()
@@ -90,6 +94,7 @@ def main(
     dev_loader = DataLoader(dev_ds, batch_size=batch_size, shuffle=False)
 
     model = GRUClassifier(input_dim=train_X.shape[-1], gru_dim=gru_dim, num_gru_layers=num_gru_layers, hidden_size=hidden_size)
+    model = model.to(DEVICE)
     pos_weight = torch.sum(torch.tensor(train_y) == 0).float() / torch.sum(
         torch.tensor(train_y) == 1).float()
 

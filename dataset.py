@@ -17,9 +17,11 @@ FEATURES_DIR = os.path.join(DATA_DIR, 'features')
 def load_csv(file):
     return pd.read_csv(file)
 
+
 @lru_cache(maxsize=2)
 def load_gs():
     return load_csv(os.path.join(DATA_DIR, 'gs.csv'))
+
 
 def load_unimodal_data(label_df, features, undersample_negative=None):
     feature_dir = f'{FEATURES_DIR}/{features}'
@@ -44,7 +46,7 @@ def load_unimodal_data(label_df, features, undersample_negative=None):
         X.append(seg_features)
         y.append(row.humor)
         ids.append(row.ID)
-    X = np.vstack(X)
+    X = np.vstack(X).astype(np.float64)
     y = np.array(y)
     return X, y, ids
 
@@ -74,24 +76,26 @@ class CustomDS(Dataset):
 
 class CustomDSSeparate(Dataset):
 
-    def __init__(self, Xs, y, ids, device: str = 'cpu'):
+    def __init__(self, X1, X2, y, ids, device: str = 'cpu'):
         super(CustomDSSeparate, self).__init__()
-        self.device = device
-        self.Xs = Xs
-        self.y = torch.from_numpy(y.astype(np.float32)).to(self.device)
-        self.ids = np.array(ids)
+        assert X1.shape[0] == X2.shape[0]
+        self.X1 = torch.from_numpy(X1).to(device)
+        self.X2 = torch.from_numpy(X2).to(device)
+        self.y = torch.tensor(y)
+        self.ids = ids
 
     def __len__(self):
-        return self.y.shape[0]
+        return len(self.y)
 
     def __getitem__(self, item):
-        return [X[item] for X in self.Xs], self.y[item], self.ids[item]
+        return (self.X1[item], self.X2[item]), self.y[item], self.ids[item]
 
 def custom_collate_fn(batch):
-    xs = [[torch.tensor(np.expand_dims(b[0][i], 0)) for i in range(len(b[0]))]
-          for b in batch ]
+    x1s = [torch.tensor(np.expand_dims(b[0][0], 0)) for b in batch]
+    x2s = [torch.tensor(np.expand_dims(b[0][1], 0)) for b in batch]
     ys = [b[1] for b in batch]
     ids = [b[2] for b in batch]
-    xs = [torch.cat(x) for x in xs]
+    x1s = torch.cat(x1s)
+    x2s = torch.cat(x2s)
     ys = torch.tensor(ys)
-    return xs, ys, ids
+    return (x1s, x2s), ys, ids

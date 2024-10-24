@@ -16,6 +16,7 @@ class GRUClassifier(nn.Module):
         self.gru_dim = gru_dim
 
     def forward(self, X, lengths=None):
+        X = X.to(self.features.all_weights[0][0].device)
         _, h_n = self.features(X)  # NL, h_out
         h_n = h_n[-1, :]
         logits = self.classification_head(h_n)

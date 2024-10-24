@@ -39,6 +39,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         for batch in tqdm(train_loader):
             optimizer.zero_grad()
             X, y, _ = batch
+            # X = X.to(DEVICE)
             y = y.to(DEVICE)
             logits = model(X)
             loss = loss_fn(logits, y)
@@ -80,6 +81,7 @@ def main(
         num_epochs=15,
         patience=2,
 ):
+    torch.manual_seed(42)
     train_X, train_y, train_ids = load_dataset("train", features, undersample_negative=undersample_negative)
     dev_X, dev_y, dev_ids = load_dataset("devel", features)
 

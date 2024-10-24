@@ -7,11 +7,10 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from dataset import load_unimodal_data, CustomDS, DATA_DIR, load_dataset
+from dataset import CustomDS, DATA_DIR, load_dataset
 from model import GRUClassifier
-from dataset import load_csv
-
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+MIN_SAVE_SCORE = 0.74
 
 
 def get_predictions(model, data_loader):
@@ -27,8 +26,7 @@ def get_predictions(model, data_loader):
     return np.array(predictions)
 
 
-def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimizer,
-          model_cp_file=f'{DATA_DIR}/day2/model_checkpoints/fau_gru.pt'):
+def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimizer):
     es_counter = 0
     best_uar = -1
     best_state_dict = None
@@ -59,13 +57,14 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         if dev_uar > best_uar:
             es_counter = 0
             best_uar = dev_uar
-            torch.save(model.state_dict(), model_cp_file)
+            best_state_dict = model.state_dict()
+            # torch.save(model.state_dict(), model_cp_file)
         else:
             es_counter += 1
             if es_counter > patience:
                 print('Early stopping.')
                 break
-    model.load_state_dict(torch.load(model_cp_file, weights_only=True))
+    model.load_state_dict(best_state_dict)
     return model, best_uar
 
 def main(
@@ -99,8 +98,26 @@ def main(
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.AdamW(lr=lr, params=model.parameters(), betas=betas, weight_decay=weight_decay)
 
-    model, best_uar = train(model, train_loader, dev_loader, loss_fn, num_epochs=num_epochs, patience=patience, optimizer=optimizer)
-    #
+    model, best_uar = train(
+        model, train_loader, dev_loader, loss_fn,
+        num_epochs=num_epochs, patience=patience, optimizer=optimizer
+    )
+    save_path = f'{DATA_DIR}/day4/model_checkpoints'
+    directory = os.path.join(save_path, f'{features}')
+    os.makedirs(directory, exist_ok=True)
+
+    if best_uar > MIN_SAVE_SCORE:
+        torch.save({
+            "model": model.state_dict(),
+            "settings": {
+                "input_dim": train_X.shape[-1],
+                "gru_dim": gru_dim,
+                "num_gru_layers": num_gru_layers,
+                "hidden_size": hidden_size,
+                "bidirectional": bidirectional
+            }
+        }, os.path.join(directory, f'gru_{int(best_uar*10_000)}.pt'))
+
     return model, best_uar
 
 

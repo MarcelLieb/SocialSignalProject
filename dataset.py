@@ -37,7 +37,7 @@ def load_unimodal_data(label_df, features, undersample_negative=None):
         if current_segment != row.segment:
             current_segment = row.segment
             feature_df = load_csv(f'{feature_dir}/{row.coach}/{row.segment}.csv')
-        seg_feature_df = feature_df[(feature_df.timestamps >= row.start) & (feature_df.timestamps < row.end)]
+        seg_feature_df = feature_df[(feature_df.timestamp >= row.start) & (feature_df.timestamp < row.end)]
         seg_features = seg_feature_df.iloc[:, 2:].values
         seg_features = np.pad(seg_features, ((0, 4 - seg_features.shape[0]), (0, 0)))
         seg_features = np.expand_dims(seg_features, 0)

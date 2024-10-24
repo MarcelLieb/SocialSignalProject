@@ -1,13 +1,15 @@
+import os
+
 import pandas as pd
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from tqdm import tqdm
 import numpy as np
 
 from functools import lru_cache
 
-
-FEATURES_DIR = "../data/features"
+DATA_DIR = '../data'
+FEATURES_DIR = os.path.join(DATA_DIR, 'features')
 
 
 # speed up loading time drastically

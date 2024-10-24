@@ -70,3 +70,28 @@ class CustomDS(Dataset):
 
     def __getitem__(self, item):
         return self.X[item], self.y[item], self.ids[item]
+
+
+class CustomDSSeparate(Dataset):
+
+    def __init__(self, Xs, y, ids, device: str = 'cpu'):
+        super(CustomDSSeparate, self).__init__()
+        self.device = device
+        self.Xs = Xs
+        self.y = torch.from_numpy(y.astype(np.float32)).to(self.device)
+        self.ids = np.array(ids)
+
+    def __len__(self):
+        return self.y.shape[0]
+
+    def __getitem__(self, item):
+        return [X[item] for X in self.Xs], self.y[item], self.ids[item]
+
+def custom_collate_fn(batch):
+    xs = [[torch.tensor(np.expand_dims(b[0][i], 0)) for i in range(len(b[0]))]
+          for b in batch ]
+    ys = [b[1] for b in batch]
+    ids = [b[2] for b in batch]
+    xs = [torch.cat(x) for x in xs]
+    ys = torch.tensor(ys)
+    return xs, ys, ids

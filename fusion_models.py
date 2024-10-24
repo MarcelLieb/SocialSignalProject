@@ -28,16 +28,15 @@ class IntermediateFusion(nn.Module):
 
     def forward(self, Xs):
         # Assume that the two sequences are given as tuples. This is crucial for compatibility with the methods implemented above
-        Xs = [X.to(self.linear1.weight.device) for X in Xs]
-        gru_res = [self.models[i](X.float()) for i,X in enumerate(Xs)]
-        print(len(gru_res),gru_res[0].shape)
+        Xs = [X.float().to(self.linear1.weight.device) for X in Xs]
+        gru_res = [self.models[i].features(X)[1] for i,X in enumerate(Xs)]
         x = torch.cat(gru_res, dim=2)
         x = self.proj(x)
         x = self.activation(x)
         x, _ = self.gru_mm(x)
-        x = x[:, -1]
+        x = x[-1,:]
         x = self.dropout(x)
         x = self.linear1(x)
         x = self.activation(x)
         x = self.linear2(x)
-        return x
+        return x.squeeze()

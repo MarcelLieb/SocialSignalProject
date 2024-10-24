@@ -1,0 +1,14 @@
+import librosa
+from numpy.lib.stride_tricks import sliding_window_view
+from scipy.signal import resample
+import numpy as np
+def load_windowed_signal(file, window=3, step=.5):
+    signal, sr = librosa.load(file)
+    signal = resample(signal,int(len(signal) * (expected_sr / sr)))
+    windows = sliding_window_view(signal,window * expected_sr)
+    windows = windows[::int(expected_sr * step)]
+    remaining = len(signal) % int(expected_sr * step) + int(window * expected_sr) - int(step * expected_sr)
+    while remaining > expected_sr:
+        windows = np.concatenate((windows,[np.pad(signal[-remaining:],(0,window * expected_sr - remaining),'constant',constant_values=(0,0))]))
+        remaining -= int(step * expected_sr)
+    return windows

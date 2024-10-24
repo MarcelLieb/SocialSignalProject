@@ -90,9 +90,10 @@ class CustomDSSeparate(Dataset):
     def __getitem__(self, item):
         return (self.X1[item], self.X2[item]), self.y[item], self.ids[item]
 
+
 def custom_collate_fn(batch):
-    x1s = [torch.tensor(np.expand_dims(b[0][0], 0)) for b in batch]
-    x2s = [torch.tensor(np.expand_dims(b[0][1], 0)) for b in batch]
+    x1s = [torch.unsqueeze(b[0][0], 0) for b in batch]
+    x2s = [torch.unsqueeze(b[0][1], 0) for b in batch]
     ys = [b[1] for b in batch]
     ids = [b[2] for b in batch]
     x1s = torch.cat(x1s)

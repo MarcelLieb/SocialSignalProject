@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import optuna
 import torch
 from sklearn.metrics import recall_score
 from torch import nn
@@ -26,7 +27,7 @@ def get_predictions(model, data_loader):
     return np.array(predictions)
 
 
-def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimizer):
+def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimizer, trial: optuna.Trial=None):
     es_counter = 0
     best_uar = -1
     best_state_dict = None
@@ -54,6 +55,8 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         dev_preds = (dev_preds > 0.5).astype(np.int32)
         dev_uar = recall_score(dev_labels, dev_preds, average='macro')
         print(f'UAR: {dev_uar}')
+        if trial is not None:
+            trial.report(dev_uar, epoch)
         if dev_uar > best_uar:
             es_counter = 0
             best_uar = dev_uar
@@ -61,11 +64,14 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
             # torch.save(model.state_dict(), model_cp_file)
         else:
             es_counter += 1
-            if es_counter > patience:
+            if es_counter > patience and trial is None:
                 print('Early stopping.')
                 break
+        if trial is not None and trial.should_prune():
+            raise optuna.TrialPruned()
     model.load_state_dict(best_state_dict)
     return model, best_uar
+
 
 def main(
         features='faus',
@@ -80,6 +86,7 @@ def main(
         bidirectional=True,
         num_epochs=15,
         patience=2,
+        trial: optuna.Trial=None
 ):
     torch.manual_seed(42)
     train_X, train_y, train_ids = load_dataset("train", features, undersample_negative=undersample_negative)

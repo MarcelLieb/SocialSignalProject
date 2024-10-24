@@ -20,7 +20,8 @@ def main(
         hidden_size=16,
         num_epochs=10,
         patience=2,
-        ensemble_count=5,
+        ensemble_count=0,
+        trial: optuna.Trial = None
 ):
     train_X_1, train_y_1, train_ids_1 = load_dataset("train", features[0], undersample_negative)
     train_X_2, train_y_2, train_ids_2 = load_dataset("train", features[1], undersample_negative)
@@ -65,7 +66,8 @@ def main(
         loss_fn,
         num_epochs,
         patience,
-        optimizer
+        optimizer,
+        trial=trial,
     )
 
     return best_uar_if

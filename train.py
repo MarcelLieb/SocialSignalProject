@@ -19,6 +19,8 @@ def get_predictions(model, data_loader):
         for batch in tqdm(data_loader):
             X, _, _ = batch
             pred = model(X).squeeze().cpu().numpy().tolist()
+            if isinstance(pred, float):
+                pred = [pred]
             predictions.extend(pred)
     return np.array(predictions)
 
@@ -80,17 +82,14 @@ def main(
     train_X, train_y, train_ids = load_unimodal_data(gs_df[gs_df.partition == 'train'], features,
                                                               undersample_negative=undersample_negative)
     dev_X, dev_y, dev_ids = load_unimodal_data(gs_df[gs_df.partition == 'devel'], features)
-    test_X, test_y, test_ids = load_unimodal_data(gs_df[gs_df.partition == 'test'], features)
 
     train_ds = CustomDS(train_X, train_y, train_ids)
     dev_ds = CustomDS(dev_X, dev_y, dev_ids)
-    test_ds = CustomDS(test_X, test_y, test_ids)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     dev_loader = DataLoader(dev_ds, batch_size=batch_size, shuffle=False)
-    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
-    model = GRUClassifier(input_dim=train_X.shape[1], gru_dim=gru_dim, num_gru_layers=num_gru_layers, hidden_size=hidden_size)
+    model = GRUClassifier(input_dim=train_X.shape[-1], gru_dim=gru_dim, num_gru_layers=num_gru_layers, hidden_size=hidden_size)
     pos_weight = torch.sum(torch.tensor(train_y) == 0).float() / torch.sum(
         torch.tensor(train_y) == 1).float()
 
@@ -99,6 +98,10 @@ def main(
 
     model, best_uar = train(model, train_loader, dev_loader, loss_fn, num_epochs=num_epochs, patience=patience, optimizer=optimizer)
 
+    return model, best_uar
 
+
+if __name__ == '__main__':
+    main()
 
 

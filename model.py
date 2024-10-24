@@ -16,6 +16,7 @@ class GRUClassifier(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_size, 1)
         )
+        self.gru_dim = gru_dim
 
     def forward(self, X, lengths=None):
         _, h_n = self.features(X)  # NL, h_out

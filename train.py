@@ -69,18 +69,18 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
     return model, best_uar
 
 def main(
-        features='xhubert_raw',
+        features='self_wav',
         batch_size=4,
         lr=0.005,
         betas=(0.9, 0.999),
         weight_decay=0.01,
-        undersample_negative=0.1,
-        gru_dim=32,
+        undersample_negative=0.2,
+        gru_dim=64,
         num_gru_layers=2,
         hidden_size=16,
         bidirectional=True,
-        num_epochs=10,
-        patience=1,
+        num_epochs=15,
+        patience=2,
 ):
     train_X, train_y, train_ids = load_dataset("train", features, undersample_negative=undersample_negative)
     dev_X, dev_y, dev_ids = load_dataset("devel", features)
@@ -100,7 +100,7 @@ def main(
     optimizer = torch.optim.AdamW(lr=lr, params=model.parameters(), betas=betas, weight_decay=weight_decay)
 
     model, best_uar = train(model, train_loader, dev_loader, loss_fn, num_epochs=num_epochs, patience=patience, optimizer=optimizer)
-
+    #
     return model, best_uar
 
 

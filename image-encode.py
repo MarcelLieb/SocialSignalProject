@@ -13,7 +13,7 @@ EPOCHS = 10
 MAX_SEQ_LENGTH = 4
 NUM_FEATURES = 2048
 
-DATA_DIR = '../data'
+DATA_DIR = '../../data'
 
 gs_df = pd.read_csv(os.path.join(DATA_DIR, 'gs.csv'))
 abs_starts = []

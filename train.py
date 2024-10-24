@@ -20,7 +20,7 @@ def get_predictions(model, data_loader):
     with torch.no_grad():
         for batch in tqdm(data_loader):
             X, _, _ = batch
-            pred = model(X).squeeze().cpu().numpy().tolist()
+            pred = model(X).squeeze().cpu().detach().numpy().tolist()
             if isinstance(pred, float):
                 pred = [pred]
             predictions.extend(pred)
@@ -32,7 +32,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
     es_counter = 0
     best_uar = -1
     best_state_dict = None
-    dev_labels = dev_loader.dataset.y
+    dev_labels = dev_loader.dataset.y.cpu()
     losses = []
 
     for epoch in range(num_epochs):
@@ -87,8 +87,8 @@ def main(
                                                               undersample_negative=undersample_negative)
     dev_X, dev_y, dev_ids = load_unimodal_data(gs_df[gs_df.partition == 'devel'], features)
 
-    train_ds = CustomDS(train_X, train_y, train_ids)
-    dev_ds = CustomDS(dev_X, dev_y, dev_ids)
+    train_ds = CustomDS(train_X, train_y, train_ids, device=DEVICE)
+    dev_ds = CustomDS(dev_X, dev_y, dev_ids, device=DEVICE)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     dev_loader = DataLoader(dev_ds, batch_size=batch_size, shuffle=False)

@@ -1,40 +1,43 @@
-import os
-
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader
+from torch import nn
+from torch.utils.data import DataLoader, ConcatDataset
 import datetime
 
-from dataset import load_dataset, DATA_DIR, CustomDS
-from model import EnsembleModel
-from model import GRUClassifier
-from train import get_predictions
+from dataset import load_dataset, CustomDS
+from model import EnsembleModel, load_checkpoint
+from train import get_predictions, train, DEVICE
 
 
 def main():
-    features = "vit_face"
+    features = "bert32"
 
-    checkpoint_path = os.path.join(DATA_DIR, "day4", 'model_checkpoints', features)
-    checkpoints = os.listdir(checkpoint_path)
-    checkpoints.sort(reverse=True)
-    checkpoints = checkpoints[:5]
+    models = load_checkpoint(features, count=5)
+    ensemble_model = EnsembleModel(models).to(DEVICE)
 
-    models = []
-    for checkpoint in checkpoints:
-        path = os.path.join(checkpoint_path, checkpoint)
-        data = torch.load(path)
-        model = GRUClassifier(
-            **data["settings"]
-        )
-        model.load_state_dict(data["model"])
-        models.append(model)
-    ensemble_model = EnsembleModel(models)
+    train_X, train_y, train_ids = load_dataset("train", features, undersample_negative=0.1)
+    dev_X, dev_y, dev_ids = load_dataset("devel", features)
+
+    train_ds = CustomDS(train_X, train_y, train_ids, device=DEVICE)
+    dev_ds = CustomDS(dev_X, dev_y, dev_ids, device=DEVICE)
+    train_ds = ConcatDataset([train_ds, dev_ds])
+
+    train_loader = DataLoader(train_ds, batch_size=4, shuffle=True)
+    dev_loader = DataLoader(dev_ds, batch_size=4, shuffle=False)
+
+    pos_weight = torch.sum(torch.tensor(train_y) == 0).float() / torch.sum(
+        torch.tensor(train_y) == 1).float()
+
+    loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    optimizer = torch.optim.AdamW(lr=1e-5, params=ensemble_model.parameters(), weight_decay=1e-4)
+
+    ensemble_model, uar = train(ensemble_model, train_loader, dev_loader, loss_fn, 4, 2, optimizer)
 
     X, y, ids = load_dataset("test", features)
 
     test_ds = CustomDS(X, y, ids)
     test_loader = DataLoader(test_ds, batch_size=4, shuffle=False)
-    pred = (get_predictions(ensemble_model, test_loader) > 0).astype(int)
+    pred = (get_predictions(ensemble_model, test_loader) > 0.5).astype(int)
 
     submission_df = pd.DataFrame({'ID': ids, 'humor': pred})
     # Get current time

@@ -3,7 +3,7 @@ import torch
 
 from train import main as train_model
 
-FEATURES = "faus"
+FEATURES = "self_wav"
 DATABASE = "postgresql://SocialSignalProcessing:SocialSignalProcessingLabDontHackMe@liebschedomain.de:6969"
 
 

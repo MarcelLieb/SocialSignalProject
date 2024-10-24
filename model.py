@@ -1,4 +1,8 @@
+from sys import modules
+
 import torch.nn as nn
+import torch
+from torch.nn import ModuleList
 
 
 class GRUClassifier(nn.Module):
@@ -18,3 +22,17 @@ class GRUClassifier(nn.Module):
         h_n = h_n[-1, :]
         logits = self.classification_head(h_n)
         return logits.squeeze(-1)
+
+
+class LateFusion(nn.Module):
+    def __init__(self, models):
+        super().__init__()
+        self.modules = nn.ModuleList(models)
+
+    def forward(self, X, lengths=None):
+        sum_res = torch.zeros(len(self.modules))
+        for module in self.modules:
+            sum_res = torch.add(sum_res, module(X))
+        sum_res /= len(self.modules)
+        return sum_res
+

@@ -7,8 +7,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from dataset import load_unimodal_data, CustomDS, DATA_DIR, load_dataset, custom_collate_fn, CustomDSSeparate
-from fusion_models import IntermediateFusion
 from dataset import CustomDS, DATA_DIR, load_dataset
 from model import GRUClassifier
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -69,7 +67,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
     return model, best_uar
 
 def main(
-        features=['faus','egemaps'],
+        features='faus',
         batch_size=4,
         lr=0.005,
         betas=(0.9, 0.999),
@@ -82,29 +80,16 @@ def main(
         num_epochs=15,
         patience=2,
 ):
-    train_X = []
-    dev_X = []
-    train_y = None
-    train_ids = None
-    dev_y = None
-    dev_ids = None
-    for feature in features:
-        t_train_X, train_y, train_ids = load_dataset("train", feature, undersample_negative=undersample_negative)
-        t_dev_X, dev_y, dev_ids = load_dataset("devel", feature)
-        train_X.append(t_train_X)
-        dev_X.append(t_dev_X)
+    train_X, train_y, train_ids = load_dataset("train", features, undersample_negative=undersample_negative)
+    dev_X, dev_y, dev_ids = load_dataset("devel", features)
 
-    train_ds = CustomDSSeparate(train_X, train_y, train_ids, device=DEVICE)
-    dev_ds = CustomDSSeparate(dev_X, dev_y, dev_ids, device=DEVICE)
+    train_ds = CustomDS(train_X, train_y, train_ids, device=DEVICE)
+    dev_ds = CustomDS(dev_X, dev_y, dev_ids, device=DEVICE)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     dev_loader = DataLoader(dev_ds, batch_size=batch_size, shuffle=False)
 
-    models = [GRUClassifier(input_dim=train_X[i].shape[-1], gru_dim=gru_dim, num_gru_layers=num_gru_layers,
-                          hidden_size=hidden_size, bidirectional=bidirectional) for i in range(len(features))]
-    for i in range(len(models)):
-        models[i] = models[i].to(DEVICE)
-    model = IntermediateFusion(models)
+    model = GRUClassifier(input_dim=train_X.shape[-1], gru_dim=gru_dim, num_gru_layers=num_gru_layers, hidden_size=hidden_size, bidirectional=bidirectional)
     model = model.to(DEVICE)
     pos_weight = torch.sum(torch.tensor(train_y) == 0).float() / torch.sum(
         torch.tensor(train_y) == 1).float()

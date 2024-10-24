@@ -7,7 +7,7 @@ FEATURES = "faus"
 DATABASE = "postgresql://SocialSignalProcessing:SocialSignalProcessingLabDontHackMe@liebschedomain.de:6969"
 
 
-def objective(trial):
+def objective(trial: optuna.Trial):
     batch_size = trial.suggest_int("batch_size", 1, 32)
     lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
     betas = (trial.suggest_float("beta1", 0.1, 0.9), trial.suggest_float("beta2", 0.1, 0.9))
@@ -16,6 +16,7 @@ def objective(trial):
     gru_dim = trial.suggest_int("gru_dim", 4, 256)
     num_gru_layers = trial.suggest_int("num_gru_layers", 1, 6)
     hidden_size = trial.suggest_int("hidden_size", 4, 256)
+    bidirectional = trial.suggest_categorical("bidirectional", [True, False])
     model, score = train_model(
         features=FEATURES,
         batch_size=batch_size,
@@ -26,6 +27,7 @@ def objective(trial):
         gru_dim=gru_dim,
         num_gru_layers=num_gru_layers,
         hidden_size=hidden_size,
+        bidirectional=bidirectional,
         num_epochs=10,
         patience=1,
     )
@@ -53,9 +55,10 @@ def main():
         "gru_dim": 32,
         "num_gru_layers": 2,
         "hidden_size": 16,
+        "bidirectional": False,
     }, skip_if_exists=True)
 
-    study.optimize(objective, n_trials=30, catch=(torch.cuda.OutOfMemoryError, RuntimeError), gc_after_trial=True)
+    study.optimize(objective, n_trials=100, catch=(torch.cuda.OutOfMemoryError, RuntimeError), gc_after_trial=True)
 
 
 if __name__ == "__main__":

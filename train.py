@@ -78,6 +78,7 @@ def main(
         gru_dim=32,
         num_gru_layers=2,
         hidden_size=16,
+        bidirectional=True,
         num_epochs=10,
         patience=1,
 ):
@@ -90,7 +91,7 @@ def main(
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     dev_loader = DataLoader(dev_ds, batch_size=batch_size, shuffle=False)
 
-    model = GRUClassifier(input_dim=train_X.shape[-1], gru_dim=gru_dim, num_gru_layers=num_gru_layers, hidden_size=hidden_size)
+    model = GRUClassifier(input_dim=train_X.shape[-1], gru_dim=gru_dim, num_gru_layers=num_gru_layers, hidden_size=hidden_size, bidirectional=bidirectional)
     model = model.to(DEVICE)
     pos_weight = torch.sum(torch.tensor(train_y) == 0).float() / torch.sum(
         torch.tensor(train_y) == 1).float()

@@ -4,6 +4,7 @@ import torch
 from train import main as train_model
 
 FEATURES = "faus"
+DATABASE = "postgresql://SocialSignalProcessing:SocialSignalProcessingLabDontHackMe@liebschedomain.de:6969"
 
 
 def objective(trial):
@@ -35,7 +36,7 @@ def objective(trial):
 def main():
     study = optuna.create_study(
         study_name=FEATURES,
-        storage="postgresql://SocialSignalProcessing:SocialSignalProcessingLabDontHackMe@liebschedomain.de:6969",
+        storage=DATABASE,
         load_if_exists=True,
         directions=["maximize"],
         sampler=optuna.samplers.TPESampler(multivariate=True),

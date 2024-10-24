@@ -7,7 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from dataset import load_unimodal_data, CustomDS, DATA_DIR
+from dataset import load_unimodal_data, CustomDS, DATA_DIR, load_dataset
 from model import GRUClassifier
 from dataset import load_csv
 

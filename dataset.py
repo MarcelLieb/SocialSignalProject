@@ -8,15 +8,18 @@ import numpy as np
 
 from functools import lru_cache
 
-DATA_DIR = '../data'
+DATA_DIR = './data/data'
 FEATURES_DIR = os.path.join(DATA_DIR, 'features')
 
 
 # speed up loading time drastically
-@lru_cache(maxsize=16)
+@lru_cache(maxsize=128)
 def load_csv(file):
     return pd.read_csv(file)
 
+@lru_cache(maxsize=2)
+def load_gs():
+    return load_csv(os.path.join(DATA_DIR, 'gs.csv'))
 
 def load_unimodal_data(label_df, features, undersample_negative=None):
     feature_dir = f'{FEATURES_DIR}/{features}'
@@ -43,6 +46,13 @@ def load_unimodal_data(label_df, features, undersample_negative=None):
         ids.append(row.ID)
     X = np.vstack(X)
     y = np.array(y)
+    return X, y, ids
+
+@lru_cache(maxsize=128)
+def load_dataset(split, features, undersample_negative=None):
+    gs_df = load_gs()
+    X, y, ids = load_unimodal_data(gs_df[gs_df.partition == split], features,
+                                                     undersample_negative=undersample_negative)
     return X, y, ids
 
 

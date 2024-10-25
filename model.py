@@ -32,13 +32,13 @@ class GRUClassifier(nn.Module):
         super(GRUClassifier, self).__init__()
         self.features = nn.GRU(input_size=input_dim, hidden_size=gru_dim, num_layers=num_gru_layers,
                                batch_first=True, bidirectional=bidirectional)
+        self.gru_dim = gru_dim * (2 if bidirectional else 1)
         self.classification_head = nn.Sequential(
             nn.Dropout(0.5),
-            nn.Linear(gru_dim, hidden_size),
+            nn.Linear(self.gru_dim, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, 1)
         )
-        self.gru_dim = gru_dim * (2 if bidirectional else 1)
 
     def forward(self, X, return_hidden=False):
         X = X.to(self.features.all_weights[0][0].device)

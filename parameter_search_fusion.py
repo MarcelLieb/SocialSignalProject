@@ -4,7 +4,7 @@ import torch
 from train_cross_fusion import main as train_model
 
 FEATURES = ("vit_face", "bert32")
-DATABASE = "postgresql://SocialSignalProcessing:SocialSignalProcessingLabDontHackMe@liebschedomain.de:6969"
+DATABASE = ""
 
 
 def objective(trial: optuna.Trial):

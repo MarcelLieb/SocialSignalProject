@@ -22,7 +22,7 @@ def main(
         gru_mm_dim=64,
         num_gru_layers=2,
         hidden_size=16,
-        hidden_size_enc=16,
+        hidden_size_en=16,
         num_epochs=10,
         patience=2,
         ensemble_count=0,
@@ -51,8 +51,8 @@ def main(
         model_2 = [model_2]
     if len(model_2) == 0:
         model_2 = [GRUClassifier(input_dim=train_X_2.shape[-1])]
-    model_1 = EnsembleModel(model_1, hidden_size_enc)
-    model_2 = EnsembleModel(model_2, hidden_size_enc)
+    model_1 = EnsembleModel(model_1, hidden_size_en)
+    model_2 = EnsembleModel(model_2, hidden_size_en)
 
     model_if = IntermediateFusion2([model_1, model_2], gru_mm_dim, num_gru_layers, hidden_size)
     model_if = model_if.to(DEVICE)

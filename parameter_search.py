@@ -4,7 +4,7 @@ import torch
 from train import main as train_model
 
 FEATURES = "self_wav"
-DATABASE = "postgresql://SocialSignalProcessing:SocialSignalProcessingLabDontHackMe@liebschedomain.de:6969"
+DATABASE = "NO"
 
 
 def objective(trial: optuna.Trial):

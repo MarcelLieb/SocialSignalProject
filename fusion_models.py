@@ -18,7 +18,7 @@ class IntermediateFusion(nn.Module):
         self.activation = nn.ReLU()
         self.linear2 = nn.Linear(hidden_size, 1)
 
-    def forward(self, Xs):
+    def forward(self, Xs, return_hidden=False):
         # Assume that the two sequences are given as tuples. This is crucial for compatibility with the methods implemented above
         Xs = [X.float().to(self.linear1.weight.device) for X in Xs]
         gru_res = [self.models[i].features(X)[1] for i, X in enumerate(Xs)]

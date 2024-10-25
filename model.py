@@ -67,5 +67,5 @@ class EnsembleModel(nn.Module):
                     )
                 )
             else:
-                out.append(module(X, return_hidden=False))
+                out.append(module(X))
         return torch.stack(out).mean(dim=0)

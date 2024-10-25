@@ -101,7 +101,7 @@ def main(
         pred = (get_predictions(model, test_loader_if) > 0.5).astype(int)
         submission_df = pd.DataFrame({'ID': test_ids_1, 'humor': pred})
         # Get current time
-        now = datetime.datetime.now()
+        now = datetime.now()
         now = now.strftime("%Y-%m-%d-%H-%M-%S")
         submission_df.to_csv(f"Fusion_{features[0]}_{features[1]}_{now}_{int(best_uar_if * 10_000)}.csv", index=False)
 

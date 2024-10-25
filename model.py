@@ -54,7 +54,7 @@ class EnsembleModel(nn.Module):
     def __init__(self, models: list[nn.Module], hidden_en_dim=16):
         super().__init__()
         self.models = nn.ModuleList(models)
-        self.projs = nn.ModuleList([nn.Linear(model.gru_dim, hidden_en_dim) for model in models])
+        self.projs = nn.ModuleList([nn.Linear(model.gru_dim, hidden_en_dim) for model in models]) if isinstance(models[0], GRUClassifier) else [None for _ in range(len(models))]
         self.gru_dim = hidden_en_dim
 
     def forward(self, X, return_hidden=False):

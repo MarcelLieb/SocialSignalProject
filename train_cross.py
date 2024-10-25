@@ -54,7 +54,7 @@ def main(
 
         loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
         optimizer = torch.optim.AdamW(lr=lr, params=model.parameters(), betas=betas, weight_decay=weight_decay)
-
+        print(f"Training fold {fold + 1}/{k_folds}")
         model, best_uar = train(
             model, train_loader, dev_loader, loss_fn,
             num_epochs=num_epochs, patience=patience, optimizer=optimizer,
@@ -82,7 +82,7 @@ def main(
             }
         }, os.path.join(directory, f'gru_{int(best_uar*10_000)}.pt'))
 
-    return model, best_uar
+    return model, final_score
 
 
 if __name__ == '__main__':

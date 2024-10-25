@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pandas as pd
 import torch
@@ -8,7 +9,7 @@ import numpy as np
 
 from functools import lru_cache
 
-DATA_DIR = '../../data'
+DATA_DIR = '../data'
 FEATURES_DIR = os.path.join(DATA_DIR, 'features')
 
 
@@ -37,6 +38,9 @@ def load_unimodal_data(label_df, features, undersample_negative=None):
             if rng.random() <= (1 - undersample_negative):
                 continue
         if current_segment != row.segment:
+            file = Path(f'{feature_dir}/{row.coach}/{row.segment}.csv')
+            if not file.is_file():
+                continue
             current_segment = row.segment
             feature_df = load_csv(f'{feature_dir}/{row.coach}/{row.segment}.csv')
         seg_feature_df = feature_df[(feature_df.timestamp >= row.start) & (feature_df.timestamp < row.end)]

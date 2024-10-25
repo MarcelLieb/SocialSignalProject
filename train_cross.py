@@ -65,6 +65,7 @@ def main(
 
     final_score = sum(scores) / len(scores)
     model = EnsembleModel(models).cpu()
+    print(f"Final score: {final_score}")
 
     save_path = f'{DATA_DIR}/day4/model_checkpoints'
     directory = os.path.join(save_path, f'{features}')

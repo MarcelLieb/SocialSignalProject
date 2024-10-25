@@ -89,6 +89,7 @@ def main(
     save_path = f'{DATA_DIR}/day4/model_checkpoints'
     directory = os.path.join(save_path, f'{features}')
     os.makedirs(directory, exist_ok=True)
+    print(f"Final UAR: {final_score}")
 
     if final_score > MIN_SAVE_SCORE:
         test_X_1, test_y_1, test_ids_1 = load_dataset("test", features[0])

@@ -22,7 +22,7 @@ def load_checkpoint(features, count=1):
         model.load_state_dict(data["model"])
         models.append(model)
 
-    if count == 1:
+    if len(models) == 1:
         return models[0]
     return models
 

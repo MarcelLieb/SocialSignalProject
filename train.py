@@ -61,8 +61,8 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         dev_preds = (dev_preds > 0.5).astype(np.int32)
         dev_uar = recall_score(y, dev_preds, average='macro')
         print(f'UAR: {dev_uar}')
-        if trial is not None:
-            trial.report(dev_uar, epoch)
+        # if trial is not None:
+        #     trial.report(dev_uar, epoch)
         if dev_uar > best_uar:
             es_counter = 0
             best_uar = dev_uar

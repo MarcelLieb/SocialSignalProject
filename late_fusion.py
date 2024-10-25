@@ -33,6 +33,7 @@ def late_fusion(predictions):
     return new_pred
 '''
 kleine modifikationen und tests bei der ausführung
+angabe von hyperparametern
 '''
 def main():
     m = [

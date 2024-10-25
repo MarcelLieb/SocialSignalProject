@@ -8,7 +8,7 @@ from sklearn.model_selection import KFold
 from torch import nn
 from torch.utils.data import DataLoader, ConcatDataset
 
-from dataset import load_dataset, CustomDS, DATA_DIR, CustomDSSeparate
+from dataset import load_dataset, CustomDS, DATA_DIR, CustomDSSeparate, custom_collate_fn
 from fusion_models import IntermediateFusion2
 from model import GRUClassifier, EnsembleModel, load_checkpoint
 from train import DEVICE, train, MIN_SAVE_SCORE, get_predictions
@@ -103,7 +103,7 @@ def main(
         # Get current time
         now = datetime.now()
         now = now.strftime("%Y-%m-%d-%H-%M-%S")
-        submission_df.to_csv(f"Fusion_{features[0]}_{features[1]}_{now}_{int(best_uar_if * 10_000)}.csv", index=False)
+        submission_df.to_csv(f"Fusion_{features[0]}_{features[1]}_{now}_{int(final_score * 10_000)}.csv", index=False)
 
     return model, final_score
 

@@ -5,7 +5,7 @@ import optuna
 import torch
 from sklearn.metrics import recall_score
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 from tqdm import tqdm
 
 from dataset import CustomDS, DATA_DIR, load_dataset
@@ -14,24 +14,30 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MIN_SAVE_SCORE = 0.74
 
 
-def get_predictions(model, data_loader):
+def get_predictions(model, data_loader, return_y=False):
     predictions = []
+    labels = []
     model.eval()
     with torch.no_grad():
         for batch in tqdm(data_loader):
-            X, _, _ = batch
+            X, y, _ = batch
+            y = y.cpu().detach()
             pred = model(X).squeeze().cpu().detach().numpy().tolist()
             if isinstance(pred, float):
                 pred = [pred]
+                y = [y]
             predictions.extend(pred)
-    return np.array(predictions)
+            labels.extend(y)
+    if return_y:
+        return np.array(predictions), np.array(labels)
+    else:
+        return np.array(predictions)
 
 
 def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimizer, trial: optuna.Trial=None):
     es_counter = 0
     best_uar = -1
     best_state_dict = None
-    dev_labels = dev_loader.dataset.y.cpu()
     losses = []
 
     for epoch in range(num_epochs):
@@ -50,10 +56,10 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         print(f'Loss: {np.round(np.mean(losses), 4)}')
         # eval 
         print('Evaluation')
-        dev_preds = get_predictions(model, dev_loader)
+        dev_preds, y = get_predictions(model, dev_loader, return_y=True)
         # binarize dev_preds 
         dev_preds = (dev_preds > 0.5).astype(np.int32)
-        dev_uar = recall_score(dev_labels, dev_preds, average='macro')
+        dev_uar = recall_score(y, dev_preds, average='macro')
         print(f'UAR: {dev_uar}')
         if trial is not None:
             trial.report(dev_uar, epoch)

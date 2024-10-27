@@ -25,7 +25,7 @@ def load_gs():
 
 
 def load_unimodal_data(label_df, features, undersample_negative=None):
-    feature_dir = f'{FEATURES_DIR}/{features}'
+    feature_dir = os.path.join(FEATURES_DIR, features)
     X = []
     y = []
     ids = []
@@ -42,7 +42,7 @@ def load_unimodal_data(label_df, features, undersample_negative=None):
             if not file.is_file():
                 continue
             current_segment = row.segment
-            feature_df = load_csv(f'{feature_dir}/{row.coach}/{row.segment}.csv')
+            feature_df = load_csv(os.path.join(feature_dir, row.coach, f'{row.segment}.csv'))
         seg_feature_df = feature_df[(feature_df.timestamp >= row.start) & (feature_df.timestamp < row.end)]
         seg_features = seg_feature_df.iloc[:, 2:].values
         seg_features = np.pad(seg_features, ((0, 4 - seg_features.shape[0]), (0, 0)))

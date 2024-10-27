@@ -21,11 +21,10 @@ def get_predictions(model, data_loader, return_y=False):
     with torch.no_grad():
         for batch in tqdm(data_loader):
             X, y, _ = batch
-            y = y.cpu().detach()
+            y = y.cpu().detach().numpy().tolist()
             pred = model(X).squeeze().cpu().detach().numpy().tolist()
             if isinstance(pred, float):
                 pred = [pred]
-                y = [y]
             predictions.extend(pred)
             labels.extend(y)
     if return_y:
@@ -49,6 +48,8 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
             # X = X.to(DEVICE)
             y = y.to(DEVICE)
             logits = model(X)
+            if logits.dim() == 0:
+                logits = logits.unsqueeze(0)
             loss = loss_fn(logits, y)
             loss.backward()
             optimizer.step()
@@ -70,7 +71,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
             # torch.save(model.state_dict(), model_cp_file)
         else:
             es_counter += 1
-            if es_counter > patience and trial is None:
+            if es_counter > patience:
                 print('Early stopping.')
                 break
         if trial is not None and trial.should_prune():

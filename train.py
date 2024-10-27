@@ -37,6 +37,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
     es_counter = 0
     best_uar = -1
     best_state_dict = None
+    best_epoch = 0
     losses = []
 
     for epoch in range(num_epochs):
@@ -67,6 +68,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         if dev_uar > best_uar:
             es_counter = 0
             best_uar = dev_uar
+            best_epoch = epoch
             best_state_dict = model.state_dict()
             # torch.save(model.state_dict(), model_cp_file)
         else:
@@ -77,7 +79,7 @@ def train(model, train_loader, dev_loader, loss_fn, num_epochs, patience, optimi
         if trial is not None and trial.should_prune():
             raise optuna.TrialPruned()
     model.load_state_dict(best_state_dict)
-    return model, best_uar
+    return model, best_uar, best_epoch
 
 
 def main(
@@ -113,7 +115,7 @@ def main(
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.AdamW(lr=lr, params=model.parameters(), betas=betas, weight_decay=weight_decay)
 
-    model, best_uar = train(
+    model, best_uar, _ = train(
         model, train_loader, dev_loader, loss_fn,
         num_epochs=num_epochs, patience=patience, optimizer=optimizer
     )

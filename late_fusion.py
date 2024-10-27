@@ -123,7 +123,7 @@ def main2(
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.AdamW(lr=lr, params=model.parameters(), betas=betas, weight_decay=weight_decay)
 
-    model, best_uar = train(
+    model, best_uar, _ = train(
         model, train_loader, dev_loader, loss_fn,
         num_epochs=num_epochs, patience=patience, optimizer=optimizer
     )

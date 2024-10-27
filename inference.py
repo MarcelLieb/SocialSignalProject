@@ -31,7 +31,7 @@ def main():
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.AdamW(lr=1e-5, params=ensemble_model.parameters(), weight_decay=1e-4)
 
-    ensemble_model, uar = train(ensemble_model, train_loader, dev_loader, loss_fn, 4, 2, optimizer)
+    ensemble_model, uar, _ = train(ensemble_model, train_loader, dev_loader, loss_fn, 4, 2, optimizer)
 
     X, y, ids = load_dataset("test", features)
 

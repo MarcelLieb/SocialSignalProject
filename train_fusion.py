@@ -63,7 +63,7 @@ def main(
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.AdamW(lr=lr, params=model_if.parameters(), weight_decay=weight_decay, betas=betas)
 
-    best_m_if, best_uar_if = train(
+    best_m_if, best_uar_if, _ = train(
         model_if,
         train_loader_if,
         dev_loader_if,

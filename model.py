@@ -15,7 +15,7 @@ def load_checkpoint(features, count=1):
     models = []
     for checkpoint in checkpoints:
         path = os.path.join(checkpoint_path, checkpoint)
-        data = torch.load(path)
+        data = torch.load(path, weights_only=False)
         model = GRUClassifier(
             **data["settings"]
         )
